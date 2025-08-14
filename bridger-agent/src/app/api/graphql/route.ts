@@ -7,10 +7,16 @@ const { handleRequest } = createYoga({
       type Query {
         greetings: String
       }
+      type Mutation {
+        updateTx: None
+      }
     `,
     resolvers: {
       Query: {
         greetings,
+      },
+      Mutation: {
+        updateTx,
       },
     },
   }),
