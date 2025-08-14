@@ -3,6 +3,7 @@ import fs from "fs";
 import Papa from "papaparse";
 
 const FILE_PATH = "/Users/alex/Downloads/sample_transactions_2.csv";
+
 function loadTransactions() {
   const file = fs.readFileSync(FILE_PATH, "utf8");
 
