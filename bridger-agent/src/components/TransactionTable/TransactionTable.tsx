@@ -1,112 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@chakra-ui/react";
+import { Button, Skeleton } from "@chakra-ui/react";
+import { useQuery } from "@apollo/client";
 import { Transaction, FilterableDisplayElement } from "./types";
 import { FilterableDropdown } from "./FilterableDropdown";
-
-const dummyTransactions: Transaction[] = [
-  {
-    id: "1",
-    date: "2024-11-10",
-    details: "Office Supplies Purchase",
-    amount: 125.50,
-    predictedVendor: "Staples",
-    pickedVendor: "Staples",
-    predictedCategory: "Office Supplies",
-    pickedCategory: "Office Supplies"
-  },
-  {
-    id: "2", 
-    date: "2024-11-11",
-    details: "Client Lunch Meeting",
-    amount: 87.25,
-    predictedVendor: "The Capital Grille",
-    pickedVendor: "The Capital Grille",
-    predictedCategory: "Meals & Entertainment",
-    pickedCategory: "Meals & Entertainment"
-  },
-  {
-    id: "3",
-    date: "2024-11-12",
-    details: "Monthly Software Subscription",
-    amount: 299.00,
-    predictedVendor: "Adobe",
-    pickedVendor: "Adobe",
-    predictedCategory: "Software",
-    pickedCategory: "Software"
-  },
-  {
-    id: "4",
-    date: "2024-11-13",
-    details: "Gas Station Fill-up",
-    amount: 65.75,
-    predictedVendor: "Shell",
-    pickedVendor: "Shell",
-    predictedCategory: "Transportation",
-    pickedCategory: "Transportation"
-  },
-  {
-    id: "5",
-    date: "2024-11-14",
-    details: "Hotel Accommodation - Conference",
-    amount: 450.00,
-    predictedVendor: "Marriott",
-    pickedVendor: "Marriott",
-    predictedCategory: "Travel",
-    pickedCategory: "Travel"
-  },
-  {
-    id: "6",
-    date: "2024-11-15",
-    details: "Internet Service Provider",
-    amount: 120.00,
-    predictedVendor: "Comcast",
-    pickedVendor: "Comcast",
-    predictedCategory: "Utilities",
-    pickedCategory: "Utilities"
-  },
-  {
-    id: "7",
-    date: "2024-11-16",
-    details: "Team Lunch",
-    amount: 156.80,
-    predictedVendor: "Chipotle",
-    pickedVendor: "Chipotle",
-    predictedCategory: "Meals & Entertainment",
-    pickedCategory: "Meals & Entertainment"
-  },
-  {
-    id: "8",
-    date: "2024-11-17",
-    details: "Printer Ink Cartridges",
-    amount: 89.99,
-    predictedVendor: "Best Buy",
-    pickedVendor: "Best Buy",
-    predictedCategory: "Office Supplies",
-    pickedCategory: "Office Supplies"
-  },
-  {
-    id: "9",
-    date: "2024-11-18",
-    details: "Uber to Airport",
-    amount: 45.50,
-    predictedVendor: "Uber",
-    pickedVendor: "Uber",
-    predictedCategory: "Transportation",
-    pickedCategory: "Transportation"
-  },
-  {
-    id: "10",
-    date: "2024-11-19",
-    details: "Cloud Storage Monthly",
-    amount: 25.00,
-    predictedVendor: "Dropbox",
-    pickedVendor: "Dropbox",
-    predictedCategory: "Software",
-    pickedCategory: "Software"
-  }
-];
+import { GET_TRANSACTIONS } from "./TransactionTable.api";
 
 const vendorOptions: FilterableDisplayElement<string>[] = [
   { key: "staples", displayName: "Staples", label: "", value: "Staples" },
@@ -137,24 +35,22 @@ const categoryOptions: FilterableDisplayElement<string>[] = [
 ];
 
 export const TransactionTable = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(dummyTransactions);
+  const { data, loading, error } = useQuery(GET_TRANSACTIONS);
 
   const handleVendorChange = (transactionId: string, vendor: string) => {
-    setTransactions(prev => 
-      prev.map(t => t.id === transactionId ? { ...t, pickedVendor: vendor } : t)
-    );
+    alert(`Vendor changed for transaction ${transactionId}: ${vendor}`);
   };
 
   const handleCategoryChange = (transactionId: string, category: string) => {
-    setTransactions(prev =>
-      prev.map(t => t.id === transactionId ? { ...t, pickedCategory: category } : t)
-    );
+    alert(`Category changed for transaction ${transactionId}: ${category}`);
   };
 
   const handleAdd = (transactionId: string) => {
-    const transaction = transactions.find(t => t.id === transactionId);
-    console.log("Adding transaction:", transaction);
+    const transaction = data?.transactions.find((t: Transaction) => t.id === transactionId);
+    alert(`Add clicked for transaction: ${JSON.stringify(transaction)}`);
   };
+
+  if (error) return <div>Error loading transactions: {error.message}</div>;
 
   return (
     <div className="w-full overflow-x-auto">
@@ -173,13 +69,13 @@ export const TransactionTable = () => {
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
               Predicted Vendor
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b" style={{ minWidth: '220px' }}>
               Picked Vendor
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
               Predicted Category
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b" style={{ minWidth: '220px' }}>
               Picked Category
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-b">
@@ -188,7 +84,20 @@ export const TransactionTable = () => {
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
-          {transactions.map((transaction) => (
+          {loading ? (
+            // Show skeleton rows while loading
+            [...Array(10)].map((_, i) => (
+              <tr key={i}>
+                {[...Array(8)].map((_, j) => (
+                  <td key={j} className="px-4 py-3">
+                    <Skeleton height="20px" />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : (
+            // Show actual data
+            data?.transactions.map((transaction: Transaction) => (
             <tr key={transaction.id} className="hover:bg-gray-50">
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                 {transaction.date}
@@ -202,7 +111,7 @@ export const TransactionTable = () => {
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                 {transaction.predictedVendor}
               </td>
-              <td className="px-4 py-3 whitespace-nowrap text-sm">
+              <td className="px-4 py-3 whitespace-nowrap text-sm" style={{ minWidth: '220px' }}>
                 <FilterableDropdown
                   label=""
                   placeholderText="Select vendor"
@@ -215,7 +124,7 @@ export const TransactionTable = () => {
               <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                 {transaction.predictedCategory}
               </td>
-              <td className="px-4 py-3 whitespace-nowrap text-sm">
+              <td className="px-4 py-3 whitespace-nowrap text-sm" style={{ minWidth: '220px' }}>
                 <FilterableDropdown
                   label=""
                   placeholderText="Select category"
@@ -235,7 +144,8 @@ export const TransactionTable = () => {
                 </Button>
               </td>
             </tr>
-          ))}
+            ))
+          )}
         </tbody>
       </table>
     </div>
