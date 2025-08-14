@@ -4,6 +4,8 @@ import { Button, Skeleton } from "@chakra-ui/react";
 import { useQuery } from "@apollo/client";
 import { Transaction, FilterableDisplayElement } from "./types";
 import { FilterableDropdown } from "./FilterableDropdown";
+import { useMutation } from "@apollo/client";
+import { UPDATE_TRANSACTION } from "./AddButton.api";
 import { GET_TRANSACTIONS } from "./TransactionTable.api";
 
 const vendorOptions: FilterableDisplayElement<string>[] = [
@@ -34,8 +36,9 @@ const categoryOptions: FilterableDisplayElement<string>[] = [
   { key: "insurance", displayName: "Insurance", label: "", value: "Insurance" },
 ];
 
+
 export const TransactionTable = () => {
-  const { data, loading, error } = useQuery(GET_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<Transaction[]>(dummyTransactions);
 
   const handleVendorChange = (transactionId: string, vendor: string) => {
     alert(`Vendor changed for transaction ${transactionId}: ${vendor}`);
@@ -46,8 +49,8 @@ export const TransactionTable = () => {
   };
 
   const handleAdd = (transactionId: string) => {
-    const transaction = data?.transactions.find((t: Transaction) => t.id === transactionId);
-    alert(`Add clicked for transaction: ${JSON.stringify(transaction)}`);
+    const transaction = transactions.find(t => t.id === transactionId);
+    console.log("Adding transaction:", transaction);
   };
 
   if (error) return <div>Error loading transactions: {error.message}</div>;
