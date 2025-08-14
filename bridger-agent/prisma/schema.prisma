@@ -10,3 +10,14 @@ datasource db {
 model Greet {
   id Int @id @default(autoincrement())
 }
+
+model Transaction {
+  id Int @id @default(autoincrement())
+  date DateTime
+  bankDetails String
+  amountCents Int
+  predVendor String?
+  pickedVendor String?
+  predCategory String?
+  pickedCategory String?
+}
